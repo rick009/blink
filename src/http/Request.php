@@ -7,6 +7,10 @@ use blink\core\MiddlewareTrait;
 use blink\core\NotSupportedException;
 use blink\core\Object;
 use blink\core\ShouldBeRefreshed;
+use Psr\Http\Message\An;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class Request
@@ -21,9 +25,10 @@ use blink\core\ShouldBeRefreshed;
  *
  * @package blink\http
  */
-class Request extends Object implements ShouldBeRefreshed
+class Request extends Object implements ShouldBeRefreshed, ServerRequestInterface
 {
     use MiddlewareTrait;
+    use MessageTrait;
 
     const METHOD_HEAD = 'HEAD';
     const METHOD_GET = 'GET';
@@ -33,8 +38,6 @@ class Request extends Object implements ShouldBeRefreshed
     const METHOD_DELETE = 'DELETE';
     const METHOD_OPTIONS = 'OPTIONS';
     const METHOD_OVERRIDE = '_METHOD';
-
-    public $protocol = 'HTTP/1.1';
 
     public $path = '/';
 
@@ -438,5 +441,157 @@ class Request extends Object implements ShouldBeRefreshed
     public function guest()
     {
         return $this->user() === null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRequestTarget()
+    {
+        // TODO: Implement getRequestTarget() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withRequestTarget($requestTarget)
+    {
+        // TODO: Implement withRequestTarget() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMethod()
+    {
+        // TODO: Implement getMethod() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withMethod($method)
+    {
+        // TODO: Implement withMethod() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUri()
+    {
+        // TODO: Implement getUri() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withUri(UriInterface $uri, $preserveHost = false)
+    {
+        // TODO: Implement withUri() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getServerParams()
+    {
+        // TODO: Implement getServerParams() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCookieParams()
+    {
+        // TODO: Implement getCookieParams() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withCookieParams(array $cookies)
+    {
+        // TODO: Implement withCookieParams() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getQueryParams()
+    {
+        // TODO: Implement getQueryParams() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withQueryParams(array $query)
+    {
+        // TODO: Implement withQueryParams() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUploadedFiles()
+    {
+        // TODO: Implement getUploadedFiles() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withUploadedFiles(array $uploadedFiles)
+    {
+        // TODO: Implement withUploadedFiles() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getParsedBody()
+    {
+        // TODO: Implement getParsedBody() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withParsedBody($data)
+    {
+        // TODO: Implement withParsedBody() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes()
+    {
+        // TODO: Implement getAttributes() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAttribute($name, $default = null)
+    {
+        // TODO: Implement getAttribute() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withAttribute($name, $value)
+    {
+        // TODO: Implement withAttribute() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withoutAttribute($name)
+    {
+        // TODO: Implement withoutAttribute() method.
     }
 }
