@@ -105,6 +105,14 @@ class Response extends Object implements ShouldBeRefreshed, ResponseInterface
     protected $content;
     protected $prepared = false;
 
+    public function __construct($body = 'php://memory', $status = 200, $config = [])
+    {
+        $this->setBody($body);
+        $this->statusCode = $status;
+
+        parent::__construct($config);
+    }
+
     public function init()
     {
         $this->headers = new HeaderBag();
