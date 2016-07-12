@@ -222,7 +222,7 @@ class RequestActor
     {
         if (is_null($data)) {
             $this->phpunit->assertJson(
-                $this->response->content(), "Failed asserting that JSON returned [{$this->request->path}]."
+                $this->response->content(), "Failed asserting that JSON returned [{$this->request->uri->path}]."
             );
 
             return $this;
@@ -282,6 +282,19 @@ class RequestActor
     public function seeStatusCode($status)
     {
         $this->phpunit->assertEquals($status, $this->response->statusCode);
+
+        return $this;
+    }
+
+    /**
+     * Asserts the content of the response matches the given value.
+     *
+     * @param $content
+     * @return $this
+     */
+    public function seeContent($content)
+    {
+        $this->phpunit->assertEquals($content, $this->response->content());
 
         return $this;
     }
