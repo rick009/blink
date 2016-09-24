@@ -213,14 +213,6 @@ class Response extends Object implements ShouldBeRefreshed, ResponseInterface
     /**
      * @inheritDoc
      */
-    public function getBody()
-    {
-        // TODO: Implement getBody() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getStatusCode()
     {
         return $this->statusCode;

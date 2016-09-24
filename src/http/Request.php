@@ -604,7 +604,7 @@ class Request extends Object implements ShouldBeRefreshed, ServerRequestInterfac
      */
     public function getParsedBody()
     {
-        return $this->getPayload();
+        return $this->getPayload()->all();
     }
 
     /**
