@@ -8,8 +8,13 @@ use FastRoute;
 use blink\log\Logger;
 use blink\http\Request;
 use blink\http\Response;
-use blink\console\ServerCommand;
 use blink\console\ShellCommand;
+use blink\console\ServerCommand;
+use blink\console\ServerReloadCommand;
+use blink\console\ServerRestartCommand;
+use blink\console\ServerServeCommand;
+use blink\console\ServerStartCommand;
+use blink\console\ServerStopCommand;
 
 /**
  * Class Application
@@ -18,6 +23,7 @@ use blink\console\ShellCommand;
  */
 class Application extends ServiceLocator
 {
+
     const VERSION = '0.3.0 (dev)';
 
     /**
@@ -26,6 +32,7 @@ class Application extends ServiceLocator
      * @var string
      */
     public $name = 'blink';
+
     /**
      * The root path for the application.
      *
@@ -69,13 +76,18 @@ class Application extends ServiceLocator
 
     public $runtime;
 
+    public $server;
+
     public $controllerNamespace;
 
     public $currentRequest;
 
     protected $dispatcher;
+
     protected $bootstrapped = false;
+
     protected $refreshing = [];
+
     protected $lastError;
 
     public function init()
@@ -91,7 +103,7 @@ class Application extends ServiceLocator
     }
 
 
-    public function bootstrap()
+    public function bootstrapIfNeeded()
     {
         if (!$this->bootstrapped) {
             try {
@@ -106,14 +118,16 @@ class Application extends ServiceLocator
                 }
 
                 $this->lastError = $e;
-                $this->get('log')->emergency($e);
+                $this->get('log')
+                     ->emergency($e);
             } catch (\Throwable $e) {
                 if ($this->environment === 'test') {
                     throw $e;
                 }
 
                 $this->lastError = $e;
-                $this->get('log')->emergency($e);
+                $this->get('log')
+                     ->emergency($e);
             }
         }
 
@@ -148,9 +162,19 @@ class Application extends ServiceLocator
 
     protected function registerRoutes()
     {
-        $this->dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
-            foreach ($this->routes as list($method, $route, $handler)) {
-                $r->addRoute($method, $route, $handler);
+        $this->dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
+            foreach ($this->routes as $value) {
+                if (!is_array($value[0]) && is_array($value[1])) {
+                    $groupRoute = $value[1];
+
+                    $r->addGroup($value[0], function (FastRoute\RouteCollector $r) use ($groupRoute) {
+                        foreach ($groupRoute as list($method, $route, $handler)) {
+                            $r->addRoute($method, $route, $handler);
+                        }
+                    });
+                } else {
+                    $r->addRoute($value[0], $value[1], $value[2]);
+                }
             }
         });
     }
@@ -184,6 +208,21 @@ class Application extends ServiceLocator
             'server' => [
                 'class' => ServerCommand::class,
             ],
+            'server:start' => [
+                'class' => ServerStartCommand::class,
+            ],
+            'server:stop' => [
+                'class' => ServerStopCommand::class,
+            ],
+            'server:restart' => [
+                'class' => ServerRestartCommand::class,
+            ],
+            'server:reload' => [
+                'class' => ServerReloadCommand::class,
+            ],
+            'server:serve' => [
+                'class' => ServerServeCommand::class,
+            ],
             'shell' => [
                 'class' => ShellCommand::class,
             ]
@@ -207,8 +246,17 @@ class Application extends ServiceLocator
         return $this;
     }
 
+    public function group($group, $routes)
+    {
+        $this->routes[] = [$group, $routes];
+
+        return $this;
+    }
+
     public function makeRequest($config = [])
     {
+        $this->bootstrapIfNeeded();
+
         $request = $this->get('request');
 
         foreach ($config as $name => $value) {
@@ -225,7 +273,7 @@ class Application extends ServiceLocator
      */
     public function handleRequest($request)
     {
-        if (!$this->bootstrapped) {
+        if ($this->lastError) {
             return $this->internalServerError();
         }
 
@@ -238,10 +286,12 @@ class Application extends ServiceLocator
             $this->exec($request, $response);
         } catch (\Exception $e) {
             $response->data = $e;
-            $this->get('errorHandler')->handleException($e);
+            $this->get('errorHandler')
+                 ->handleException($e);
         } catch (\Throwable $e) {
             $response->data = $e;
-            $this->get('errorHandler')->handleException($e);
+            $this->get('errorHandler')
+                 ->handleException($e);
         }
 
         try {
@@ -311,7 +361,7 @@ class Application extends ServiceLocator
 
     protected function refreshServices()
     {
-        foreach($this->refreshing as $id => $_) {
+        foreach ($this->refreshing as $id => $_) {
             $this->unbind($id);
             $this->bind($id, $this->services[$id]);
         }
@@ -360,17 +410,19 @@ class Application extends ServiceLocator
     {
         if ($handler instanceof Closure) {
             $action = $handler;
-        } else if (($pos = strpos($handler, '@')) !== false) {
-            $class = substr($handler, 0, $pos);
-            $method = substr($handler, $pos + 1);
-
-            if ($class[0] !== '\\' && $this->controllerNamespace) {
-                $class = $this->controllerNamespace . '\\' . $class;
-            }
-
-            $action = [$this->get($class), $method];
         } else {
-            throw new HttpException(404);
+            if (($pos = strpos($handler, '@')) !== false) {
+                $class = substr($handler, 0, $pos);
+                $method = substr($handler, $pos + 1);
+
+                if ($class[0] !== '\\' && $this->controllerNamespace) {
+                    $class = $this->controllerNamespace . '\\' . $class;
+                }
+
+                $action = [$this->get($class), $method];
+            } else {
+                throw new HttpException(404);
+            }
         }
 
         return $action;
@@ -419,6 +471,5 @@ class Application extends ServiceLocator
      */
     public function shutdown()
     {
-
     }
 }

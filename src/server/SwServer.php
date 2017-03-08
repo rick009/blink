@@ -30,6 +30,13 @@ class SwServer extends Server
     public $maxPackageLength;
 
     /**
+     * The output buffer size, see http://wiki.swoole.com/wiki/page/440.html
+     *
+     * @var int
+     */
+    public $outputBufferSize;
+
+    /**
      * The number of workers should be started to serve requests.
      *
      * @var int
@@ -68,6 +75,10 @@ class SwServer extends Server
 
         if ($this->maxPackageLength) {
             $config['package_max_length'] = $this->maxPackageLength;
+        }
+
+        if ($this->outputBufferSize) {
+            $config['buffer_output_size'] = $this->outputBufferSize;
         }
 
         return $config;

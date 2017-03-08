@@ -10,9 +10,9 @@ use blink\http\Request;
 use blink\tests\TestCase;
 use Psr\Http\Message\UriInterface;
 
-
 class RequestTest extends TestCase
 {
+
     public function testDefault()
     {
         $request = new Request([]);
@@ -49,7 +49,11 @@ class RequestTest extends TestCase
             'method' => 'POST',
             'uri' => new Uri('', ['query' => 'a=b&b=c']),
             'body' => $body,
-            'headers' => ['Content-Type' => 'application/json; Charset=utf8']
+            'headers' => [
+                'Content-Type' => 'application/json; Charset=utf8',
+                'x-forwarded-proto' => 'https',
+                'x-forwarded-port' => 443
+            ]
         ]);
 
         $this->assertTrue($request->is('post'));
@@ -58,6 +62,7 @@ class RequestTest extends TestCase
 
         $this->assertEquals('b', $request->input('a'));
         $this->assertEquals(true, $request->has('foo'));
+        $this->assertEquals(true, $request->secure());
     }
 
     public function testCookies()
